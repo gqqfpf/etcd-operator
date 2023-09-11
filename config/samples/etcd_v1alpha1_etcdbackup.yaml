@@ -1,0 +1,15 @@
+apiVersion: etcd.gqq.com/v1alpha1
+kind: EtcdBackup
+metadata:
+  name: etcdbackup-sample
+spec:
+  ecdUrl: "http://etc-0:2379"
+  image: "192.168.251.78/edoc2v5/backup:v0.0.1"
+  StorageType: s3
+  s3:
+    path: "gqq/snapshot.db"
+    s3Secret: "secret"
+    bucketnmae: "gqq"
+  oss:
+    path: "gqq/snapshot.db"
+    ossSecret: "secret"
