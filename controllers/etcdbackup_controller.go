@@ -69,12 +69,11 @@ func (r *EtcdBackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 		ectdbackupLogs.Info("Backup Object Starting . Update status")
 		newBackup := state.backup.DeepCopy()                           // 深拷贝一份
 		newBackup.Status.Phase = etcdv1alpha1.EtcdBackupPhaseBackingUp // 更新状态为备份中
-		action = &PatchStatus{ // 下一不要执行的动作
+		action = &PatchStatus{                                         // 下一不要执行的动作
 			client:   r.Client,
 			original: state.backup,
 			new:      newBackup,
 		}
-		fmt.Printf("EtcdBackupPhaseBackingUp is %s\n", newBackup.Status.Phase)
 	case state.backup.Status.Phase == etcdv1alpha1.EtcdBackupPhaseFailed: // 备份失败
 		ectdbackupLogs.Info("Backup has fialed. Ignoring")
 	case state.backup.Status.Phase == etcdv1alpha1.EtcdBakcupPhaseCompleted: // 备份完成
@@ -103,12 +102,13 @@ func (r *EtcdBackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			original: state.backup,
 			new:      newBackup,
 		}
-	}
-	ectdbackupLogs.Info("action  Starting  Update status")
-	if action != nil {
-		if err := action.Execute(ctx); err != nil {
-			return ctrl.Result{}, fmt.Errorf("execting action error: %s\n", err)
+
+		if action != nil {
+			if err := action.Execute(ctx); err != nil {
+				return ctrl.Result{}, fmt.Errorf("execting action error: %s\n", err)
+			}
 		}
+
 	}
 
 	return ctrl.Result{}, nil
@@ -118,6 +118,5 @@ func (r *EtcdBackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 func (r *EtcdBackupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&etcdv1alpha1.EtcdBackup{}).
-		Owns(&corev1.Pod{}).
 		Complete(r)
 }

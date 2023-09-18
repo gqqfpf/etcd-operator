@@ -3,7 +3,7 @@ kind: EtcdBackup
 metadata:
   name: etcdbackup-sample
 spec:
-  ecdUrl: "http://etc-0:2379"
+  ecdUrl: "http://etcd-0:2379"
   image: "192.168.251.78/edoc2v5/backup:v0.0.1"
   StorageType: s3
   s3:

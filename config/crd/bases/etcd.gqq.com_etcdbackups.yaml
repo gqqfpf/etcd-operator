@@ -38,7 +38,7 @@ spec:
               StorageType:
                 description: Storage Type s3 Or oss
                 type: string
-              ecdUrl:
+              etcdUrl:
                 description: Foo is an example field of EtcdBackup. Edit etcdbackup_types.go
                   to remove/update
                 type: string
@@ -60,10 +60,8 @@ spec:
               s3:
                 description: S3 defines the s3 backup source spec
                 properties:
-                  bucketnmae:
-                    type: string
                   endpoint:
-                    description: S3 endporint
+                    description: BucketNmae string `json:"bucketnmae"` S3 endporint
                     type: string
                   path:
                     description: the s3 backup path
@@ -72,13 +70,12 @@ spec:
                     description: the s3 accesskeyID accessKeySecret
                     type: string
                 required:
-                - bucketnmae
                 - path
                 - s3Secret
                 type: object
             required:
             - StorageType
-            - ecdUrl
+            - etcdUrl
             - image
             type: object
           status:

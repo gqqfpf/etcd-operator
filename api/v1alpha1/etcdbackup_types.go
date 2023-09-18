@@ -28,9 +28,11 @@ type BackupStorageType string
 type EtcdBackupPhase string
 
 var (
-	EtcdBackupPhaseBackingUp EtcdBackupPhase = "BackingUp"
-	EtcdBakcupPhaseCompleted EtcdBackupPhase = "Completed"
-	EtcdBackupPhaseFailed    EtcdBackupPhase = "Failed"
+	EtcdBackupPhaseBackingUp EtcdBackupPhase   = "BackingUp"
+	EtcdBakcupPhaseCompleted EtcdBackupPhase   = "Completed"
+	EtcdBackupPhaseFailed    EtcdBackupPhase   = "Failed"
+	BackupStorageTypeS3      BackupStorageType = "s3"
+	BackupStorageTypeOSS     BackupStorageType = "oss"
 )
 
 // EtcdBackupSpec defines the desired state of EtcdBackup
@@ -39,8 +41,8 @@ type EtcdBackupSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of EtcdBackup. Edit etcdbackup_types.go to remove/update
-	EcdUrl string `json:"ecdUrl"`
-	Image  string `json:"image"`
+	EtcdUrl string `json:"etcdUrl"`
+	Image   string `json:"image"`
 	// Storage Type s3 Or oss
 	StorageType BackupStorageType `json:"StorageType"`
 
@@ -61,8 +63,8 @@ type S3BackupSource struct {
 	// the s3 backup path
 	Path string `json:"path"`
 	// the s3 accesskeyID accessKeySecret
-	S3Secret   string `json:"s3Secret"`
-	BucketNmae string `json:"bucketnmae"`
+	S3Secret string `json:"s3Secret"`
+	//BucketNmae string `json:"bucketnmae"`
 	// S3 endporint
 	Endpoint string `json:"endpoint,omitempty"`
 }

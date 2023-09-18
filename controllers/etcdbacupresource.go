@@ -70,6 +70,26 @@ func (r *EtcdBackupReconciler) setStateDesired(state *backupState) error {
 
 // func podForBackup(backup *etcdv1alpha1.EtcdBackup, image string) (*corev1.Pod, error) {
 func podForBackup(backup *etcdv1alpha1.EtcdBackup) (*corev1.Pod, error) {
+	var secretRef *corev1.SecretEnvSource
+	var backupURL, backupEndpoint string
+
+	if backup.Spec.StorageType == etcdv1alpha1.BackupStorageTypeS3 {
+		backupURL = fmt.Sprintf("%s://%s", backup.Spec.StorageType, backup.Spec.S3.Path)
+		backupEndpoint = backup.Spec.S3.Endpoint
+		secretRef = &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: backup.Spec.S3.S3Secret,
+			},
+		}
+	} else {
+		backupURL = fmt.Sprintf("%s://%s", backup.Spec.StorageType, backup.Spec.OSS.Path)
+		backupEndpoint = backup.Spec.OSS.Endpoint
+		secretRef = &corev1.SecretEnvSource{
+			LocalObjectReference: corev1.LocalObjectReference{
+				Name: backup.Spec.OSS.OSSSecret,
+			},
+		}
+	}
 	return &corev1.Pod{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      backup.Name,
@@ -81,9 +101,20 @@ func podForBackup(backup *etcdv1alpha1.EtcdBackup) (*corev1.Pod, error) {
 					Name:  "etcd-backup",
 					Image: backup.Spec.Image,
 					Args: []string{
-						"--etcd-url", backup.Spec.EcdUrl,
-						"--bucketname", backup.Spec.S3.BucketNmae,
+						"--etcd-url", backup.Spec.EtcdUrl,
+						"--bucketname", backupURL,
 						"--objectname", "snapshot.db",
+					},
+					Env: []corev1.EnvVar{
+						{
+							Name:  "ENDPOINT",
+							Value: backupEndpoint,
+						},
+					},
+					EnvFrom: []corev1.EnvFromSource{
+						{
+							SecretRef: secretRef,
+						},
 					},
 					Resources: corev1.ResourceRequirements{
 						Limits: corev1.ResourceList{
