@@ -10,6 +10,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	"strings"
+	"text/template"
 )
 
 // backupState 包含  EtcdBackup 真实和期望的状态（这里的状态并不是说status）
@@ -76,6 +78,20 @@ func podForBackup(backup *etcdv1alpha1.EtcdBackup) (*corev1.Pod, error) {
 	if backup.Spec.StorageType == etcdv1alpha1.BackupStorageTypeS3 {
 		backupURL = fmt.Sprintf("%s://%s", backup.Spec.StorageType, backup.Spec.S3.Path)
 		backupEndpoint = backup.Spec.S3.Endpoint
+
+		// format:
+		//  s3://my-buket/my-dir/my-object.db
+		// s3://my-buket/{{ .Namespace }}/{{ .Name }}/{{ .CreationTimestamp }}/sanpshot.db
+		// 备份目的地址支持go-template
+		parse, err := template.New("etcdBackup").Parse(backup.Spec.S3.Path)
+		if err != nil {
+			return nil, fmt.Errorf("error %q parsing onject URL template", err)
+		}
+		var objecrURL strings.Builder
+		if err := parse.Execute(&objecrURL, backup); err != nil {
+			return nil, fmt.Errorf("error %q executing template", err)
+		}
+		backupURL = fmt.Sprintf("%s://%s", backup.Spec.StorageType, objecrURL.String())
 		secretRef = &corev1.SecretEnvSource{
 			LocalObjectReference: corev1.LocalObjectReference{
 				Name: backup.Spec.S3.S3Secret,
@@ -102,8 +118,7 @@ func podForBackup(backup *etcdv1alpha1.EtcdBackup) (*corev1.Pod, error) {
 					Image: backup.Spec.Image,
 					Args: []string{
 						"--etcd-url", backup.Spec.EtcdUrl,
-						"--bucketname", backupURL,
-						"--objectname", "snapshot.db",
+						"--backup-url", backupURL,
 					},
 					Env: []corev1.EnvVar{
 						{

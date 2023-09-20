@@ -25,7 +25,7 @@ func News3Uploader(Endpoint, AK, SK string) *s3Uploader {
 func (su *s3Uploader) InitClient() (*minio.Client, error) {
 	return minio.New(su.Endpoint, &minio.Options{
 		Creds:  credentials.NewStaticV4(su.AccessKeyID, su.SecretAccessKey, ""),
-		Secure: true,
+		Secure: false,
 	})
 }
 

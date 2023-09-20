@@ -102,13 +102,11 @@ func (r *EtcdBackupReconciler) Reconcile(ctx context.Context, req ctrl.Request) 
 			original: state.backup,
 			new:      newBackup,
 		}
-
-		if action != nil {
-			if err := action.Execute(ctx); err != nil {
-				return ctrl.Result{}, fmt.Errorf("execting action error: %s\n", err)
-			}
+	}
+	if action != nil {
+		if err := action.Execute(ctx); err != nil {
+			return ctrl.Result{}, fmt.Errorf("execting action error: %s\n", err)
 		}
-
 	}
 
 	return ctrl.Result{}, nil
